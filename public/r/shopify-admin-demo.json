@@ -1,0 +1,19 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "shopify-admin-demo",
+  "title": "Shopify Admin Demo",
+  "description": "Example admin shell built on ShopifySidebar, mirroring the Shopify Horizon Products empty state.",
+  "registryDependencies": [
+    "akrindev/bintang-registry/shopify-sidebar",
+    "akrindev/bintang-registry/shopify-nav-data"
+  ],
+  "files": [
+    {
+      "path": "registry/bintang/shopify-admin-demo.tsx",
+      "content": "\"use client\";\n\nimport * as React from \"react\";\nimport { Plus } from \"lucide-react\";\nimport { ShopifySidebar } from \"@/components/shopify-sidebar\";\n\n/**\n * Example admin shell built on <ShopifySidebar />.\n * Mirrors the Shopify Horizon \"Products\" empty state from the reference design.\n */\nexport function ShopifyAdminDemo() {\n  const [activeHref, setActiveHref] = React.useState(\"/products\");\n\n  return (\n    <div className=\"flex h-[640px] overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-900\">\n      <ShopifySidebar\n        storeName=\"MVSE\"\n        storeInitials=\"MV\"\n        activeHref={activeHref}\n        onNavigate={setActiveHref}\n        className=\"rounded-l-2xl\"\n      />\n      <main className=\"flex flex-1 flex-col bg-[#f6f6f7]\">\n        {/* top bar */}\n        <header className=\"flex items-center justify-between border-b border-zinc-200 bg-white px-6 py-3\">\n          <p className=\"text-[13px] font-medium text-zinc-500\">\n            {activeHref === \"/\" ? \"Home\" : activeHref.replace(/^\\//, \"\").replace(/-/g, \" \")}\n          </p>\n          <div className=\"flex h-8 w-8 items-center justify-center rounded-full bg-violet-100 text-[11px] font-bold text-violet-700\">\n            MV\n          </div>\n        </header>\n\n        {/* content */}\n        <div className=\"flex flex-1 flex-col items-center justify-center px-6 text-center\">\n          <h1 className=\"text-2xl font-semibold tracking-tight\">Products</h1>\n          <p className=\"mt-1 text-[15px] text-zinc-500\">Where it all starts</p>\n          <div className=\"mt-5 flex items-center gap-2\">\n            <button\n              type=\"button\"\n              className=\"inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-[13px] font-medium text-white transition-colors hover:bg-zinc-700\"\n            >\n              <Plus className=\"h-4 w-4\" />\n              Product\n            </button>\n            <button\n              type=\"button\"\n              className=\"rounded-lg border border-zinc-300 bg-white px-3.5 py-2 text-[13px] font-medium text-zinc-700 transition-colors hover:bg-zinc-50\"\n            >\n              Import\n            </button>\n          </div>\n          <p className=\"mt-10 max-w-sm text-[12px] leading-relaxed text-zinc-400\">\n            Don&rsquo;t have a SKU yet? Dropshipping or print on demand products\n            ship directly from the supplier to your customer and you only have\n            to pay for what you sell.{\" \"}\n            <a href=\"#\" className=\"font-medium text-zinc-600 underline\">\n              Learn more\n            </a>\n          </p>\n        </div>\n      </main>\n    </div>\n  );\n}\n",
+      "type": "registry:block",
+      "target": "@/components/blocks/shopify-admin-demo.tsx"
+    }
+  ],
+  "type": "registry:block"
+}
