@@ -9,13 +9,11 @@ import {
   PlusCircle,
   Settings,
   ShoppingBag,
-  Smartphone,
   Sparkles,
   Store,
   Tags,
   TrendingUp,
   Users,
-  Wallet,
 } from "lucide-react";
 
 export interface ShopifyNavChild {
@@ -52,7 +50,6 @@ export const SHOPIFY_NAV_SECTIONS: ShopifyNavSection[] = [
         label: "Products",
         href: "/products",
         icon: Tags,
-        defaultExpanded: true,
         children: [
           { label: "Products", href: "/products" },
           { label: "Collections", href: "/products/collections" },
@@ -63,11 +60,10 @@ export const SHOPIFY_NAV_SECTIONS: ShopifyNavSection[] = [
         ],
       },
       { label: "Customers", href: "/customers", icon: Users },
-      { label: "Growth", href: "/growth", icon: TrendingUp, badge: "4" },
+      { label: "Growth", href: "/growth", icon: TrendingUp },
       { label: "Discounts", href: "/discounts", icon: Percent },
       { label: "Content", href: "/content", icon: FileText },
       { label: "Markets", href: "/markets", icon: Globe2 },
-      { label: "Finance", href: "/finance", icon: Wallet },
       { label: "Analytics", href: "/analytics", icon: BarChart3 },
     ],
   },
@@ -75,8 +71,6 @@ export const SHOPIFY_NAV_SECTIONS: ShopifyNavSection[] = [
     title: "Sales channels",
     items: [
       { label: "Online Store", href: "/channels/online-store", icon: Store },
-      { label: "Shop", href: "/channels/shop", icon: ShoppingBag },
-      { label: "Point of Sale", href: "/channels/pos", icon: Smartphone },
       { label: "Agentic", href: "/channels/agentic", icon: Sparkles },
     ],
   },
@@ -91,3 +85,6 @@ export const SETTINGS_NAV_ITEM: ShopifyNavItem = {
   href: "/settings",
   icon: Settings,
 };
+
+/** Extra channel icons you can reference when building custom sections. */
+export const CHANNEL_ICONS = { ShoppingBag, Store, Sparkles };
