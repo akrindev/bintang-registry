@@ -2,16 +2,16 @@
 
 import * as React from "react";
 import {
+  Bell,
   ChevronDown,
   ChevronRight,
-  ChevronsUpDown,
-  PanelLeftClose,
+  PanelLeft,
   Search,
+  ShoppingBag,
 } from "lucide-react";
 import {
   SETTINGS_NAV_ITEM,
   SHOPIFY_NAV_SECTIONS,
-  type ShopifyNavItem,
   type ShopifyNavSection,
 } from "@/lib/shopify-nav-data";
 
@@ -30,71 +30,109 @@ export interface ShopifySidebarProps {
   sections?: ShopifyNavSection[];
   /** Called when a nav item is clicked. Defaults to a plain anchor. */
   onNavigate?: (href: string) => void;
+  /** Called when the collapse toggle is clicked. */
+  onCollapse?: () => void;
   /** Search input placeholder. */
   searchPlaceholder?: string;
   /** Called as the user types in the sidebar search. */
   onSearch?: (query: string) => void;
+  /** Show the trial banner. Pass the number of days left, or null to hide. */
+  trialDaysLeft?: number | null;
   className?: string;
 }
 
-function NavRow({
+/**
+ * Shopify-style logo mark: green rounded square with a bag glyph.
+ * Approximation for demos; replace with your own brand mark.
+ */
+export function ShopifyMark({ className }: { className?: string }) {
+  return (
+    <span
+      className={cx(
+        "flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] bg-[#95bf47]",
+        className
+      )}
+      aria-hidden
+    >
+      <ShoppingBag className="h-4 w-4 text-white" strokeWidth={2.2} />
+    </span>
+  );
+}
+
+function RowLink({
   label,
   href,
   icon: Icon,
   active,
   badge,
-  indented,
   onNavigate,
-  trailing,
 }: {
   label: string;
   href: string;
   icon?: React.ComponentType<{ className?: string }>;
   active?: boolean;
   badge?: string;
-  indented?: boolean;
   onNavigate?: (href: string) => void;
-  trailing?: React.ReactNode;
 }) {
   return (
     <a
       href={href}
-      onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(href); } : undefined}
+      onClick={
+        onNavigate
+          ? (e) => {
+              e.preventDefault();
+              onNavigate(href);
+            }
+          : undefined
+      }
       aria-current={active ? "page" : undefined}
       className={cx(
-        "group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[13px] font-medium transition-colors",
-        indented && "pl-[34px]",
+        "flex h-9 w-full items-center gap-3 px-3 text-[14px] transition-colors",
+        // only the active row gets a background, and only it is rounded
         active
-          ? "bg-white/[0.08] text-white"
-          : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+          ? "rounded-[10px] bg-white/[0.12] font-medium text-white"
+          : "font-normal text-zinc-100 hover:bg-white/[0.05]"
       )}
     >
       {Icon ? (
-        <Icon className={cx("h-4 w-4 shrink-0", active ? "text-zinc-100" : "text-zinc-500 group-hover:text-zinc-300")} />
+        <Icon
+          className={cx(
+            "h-5 w-5 shrink-0",
+            active ? "text-white" : "text-zinc-400"
+          )}
+          strokeWidth={1.8}
+        />
       ) : null}
       <span className="flex-1 truncate">{label}</span>
       {badge ? (
-        <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[11px] font-semibold leading-none text-zinc-300">
+        <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-zinc-200">
           {badge}
         </span>
       ) : null}
-      {trailing}
     </a>
   );
 }
 
 function ParentRow({
-  item,
+  label,
+  href,
+  icon: Icon,
+  children,
   activeHref,
+  defaultExpanded,
   onNavigate,
 }: {
-  item: ShopifyNavItem;
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: Array<{ label: string; href: string; badge?: string }>;
   activeHref?: string;
+  defaultExpanded?: boolean;
   onNavigate?: (href: string) => void;
 }) {
-  const childActive = item.children?.some((c) => c.href === activeHref) ?? false;
-  const selfActive = item.href === activeHref;
-  const [open, setOpen] = React.useState(item.defaultExpanded ?? childActive);
+  const childActive = children.some((c) => c.href === activeHref);
+  const selfActive = href === activeHref && !childActive;
+  const [open, setOpen] = React.useState(defaultExpanded ?? childActive);
 
   React.useEffect(() => {
     if (childActive) setOpen(true);
@@ -104,40 +142,56 @@ function ParentRow({
     <div>
       <div
         className={cx(
-          "group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[13px] font-medium transition-colors",
+          "flex h-9 w-full items-center gap-3 px-3 text-[14px] transition-colors",
           selfActive || childActive
-            ? "bg-white/[0.08] text-white"
-            : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
+            ? "rounded-[10px] bg-white/[0.12] font-medium text-white"
+            : "font-normal text-zinc-100 hover:bg-white/[0.05]"
         )}
       >
         <a
-          href={item.href}
-          onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(item.href); } : undefined}
-          className="flex flex-1 items-center gap-2.5 truncate"
+          href={href}
+          onClick={
+            onNavigate
+              ? (e) => {
+                  e.preventDefault();
+                  onNavigate(href);
+                }
+              : undefined
+          }
           aria-current={selfActive ? "page" : undefined}
+          className="flex min-w-0 flex-1 items-center gap-3"
         >
-          <item.icon className="h-4 w-4 shrink-0 text-zinc-500 group-hover:text-zinc-300" />
-          <span className="truncate">{item.label}</span>
+          <Icon
+            className={cx(
+              "h-5 w-5 shrink-0",
+              selfActive || childActive ? "text-white" : "text-zinc-400"
+            )}
+            strokeWidth={1.8}
+          />
+          <span className="truncate">{label}</span>
         </a>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          aria-label={open ? `Collapse ${item.label}` : `Expand ${item.label}`}
+          aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
           className="rounded p-0.5 text-zinc-500 hover:bg-white/10 hover:text-zinc-200"
         >
-          {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          {open ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
         </button>
       </div>
-      {open && item.children ? (
-        <div className="mt-0.5 space-y-0.5">
-          {item.children.map((child) => (
-            <NavRow
+      {open ? (
+        <div className="py-0.5">
+          {children.map((child) => (
+            <RowLink
               key={child.href}
               label={child.label}
               href={child.href}
               badge={child.badge}
-              indented
               active={child.href === activeHref}
               onNavigate={onNavigate}
             />
@@ -151,22 +205,24 @@ function ParentRow({
 /**
  * Shopify Horizon-style admin sidebar (dark).
  *
- * Drop-in navigation shell: search, collapsible nav with badges,
- * sectioned sales channels / apps, and a settings + store switcher footer.
+ * Faithful details: near-black surface, square inactive rows, softly
+ * rounded active highlight, muted section headers, store switcher footer
+ * with optional trial banner.
  */
 export function ShopifySidebar({
-  storeName = "My store",
+  storeName = "My Store",
   storeInitials = "MS",
   activeHref,
   sections = SHOPIFY_NAV_SECTIONS,
   onNavigate,
+  onCollapse,
   searchPlaceholder = "Search",
   onSearch,
+  trialDaysLeft = null,
   className,
 }: ShopifySidebarProps) {
   const [query, setQuery] = React.useState("");
   const q = query.trim().toLowerCase();
-
   const matches = React.useCallback(
     (label: string) => !q || label.toLowerCase().includes(q),
     [q]
@@ -179,8 +235,7 @@ export function ShopifySidebar({
           ...s,
           items: s.items.filter(
             (item) =>
-              matches(item.label) ||
-              item.children?.some((c) => matches(c.label))
+              matches(item.label) || item.children?.some((c) => matches(c.label))
           ),
         }))
         .filter((s) => s.items.length > 0),
@@ -190,14 +245,27 @@ export function ShopifySidebar({
   return (
     <aside
       className={cx(
-        "flex h-full w-60 shrink-0 flex-col bg-[#1b1b1b] text-zinc-300",
+        "flex h-full w-[218px] shrink-0 flex-col bg-[#1a1a1a] text-zinc-100",
         className
       )}
     >
+      {/* logo + collapse */}
+      <div className="flex items-center justify-between px-3 pb-1 pt-3">
+        <ShopifyMark />
+        <button
+          type="button"
+          onClick={onCollapse}
+          aria-label="Collapse sidebar"
+          className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
+        >
+          <PanelLeft className="h-[18px] w-[18px]" strokeWidth={1.8} />
+        </button>
+      </div>
+
       {/* search */}
-      <div className="px-3 pb-1 pt-3">
-        <label className="flex items-center gap-2 rounded-lg bg-white/[0.06] px-2.5 py-[7px] text-[13px] text-zinc-500 transition-colors focus-within:bg-white/[0.09] focus-within:text-zinc-300">
-          <Search className="h-4 w-4 shrink-0" />
+      <div className="px-2 pb-1 pt-1">
+        <label className="flex h-9 items-center gap-2 rounded-lg bg-white/[0.07] px-2.5 text-[14px] text-zinc-500 transition-colors focus-within:bg-white/[0.1] focus-within:text-zinc-300">
+          <Search className="h-4 w-4 shrink-0" strokeWidth={2} />
           <input
             value={query}
             onChange={(e) => {
@@ -205,35 +273,39 @@ export function ShopifySidebar({
               onSearch?.(e.target.value);
             }}
             placeholder={searchPlaceholder}
-            className="w-full bg-transparent text-zinc-200 outline-none placeholder:text-zinc-500"
+            className="w-full bg-transparent text-zinc-100 outline-none placeholder:text-zinc-500"
           />
         </label>
       </div>
 
       {/* nav */}
-      <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-2 [scrollbar-width:thin]">
+      <nav className="flex-1 space-y-3 overflow-y-auto px-2 py-1 [scrollbar-width:thin]">
         {visibleSections.map((section, i) => (
           <div key={section.title ?? `main-${i}`}>
             {section.title ? (
               <button
                 type="button"
-                className="mb-1 flex w-full items-center gap-1 px-2.5 py-1 text-[12px] font-semibold text-zinc-500 transition-colors hover:text-zinc-300"
+                className="mb-0.5 flex h-8 w-full items-center gap-1 px-3 text-[13px] font-normal text-zinc-500 transition-colors hover:text-zinc-300"
               >
                 <span className="flex-1 text-left">{section.title}</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             ) : null}
-            <div className="space-y-0.5">
+            <div className="space-y-[2px]">
               {section.items.map((item) =>
                 item.children ? (
                   <ParentRow
                     key={item.href}
-                    item={item}
+                    label={item.label}
+                    href={item.href}
+                    icon={item.icon}
+                    children={item.children}
                     activeHref={activeHref}
+                    defaultExpanded={item.defaultExpanded}
                     onNavigate={onNavigate}
                   />
                 ) : (
-                  <NavRow
+                  <RowLink
                     key={item.href}
                     label={item.label}
                     href={item.href}
@@ -248,43 +320,45 @@ export function ShopifySidebar({
           </div>
         ))}
         {visibleSections.length === 0 ? (
-          <p className="px-2.5 py-4 text-[13px] text-zinc-500">
+          <p className="px-3 py-4 text-[13px] text-zinc-500">
             No results for &ldquo;{query}&rdquo;
           </p>
         ) : null}
       </nav>
 
       {/* footer */}
-      <div className="space-y-0.5 border-t border-white/[0.06] px-3 py-2">
-        <NavRow
+      <div className="border-t border-white/[0.08] px-2 py-2">
+        <RowLink
           label={SETTINGS_NAV_ITEM.label}
           href={SETTINGS_NAV_ITEM.href}
           icon={SETTINGS_NAV_ITEM.icon}
           active={SETTINGS_NAV_ITEM.href === activeHref}
           onNavigate={onNavigate}
         />
-        <div className="flex items-center gap-2 rounded-lg px-1.5 py-1.5">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-zinc-700 text-[11px] font-bold text-white">
+        <div className="mt-1 flex h-10 items-center gap-2.5 px-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] bg-[#95bf47] text-[11px] font-bold text-white">
             {storeInitials}
           </span>
-          <span className="flex-1 truncate text-[13px] font-medium text-zinc-200">
+          <span className="flex-1 truncate text-[14px] text-zinc-100">
             {storeName}
           </span>
           <button
             type="button"
-            aria-label="Switch store"
-            className="rounded p-1 text-zinc-500 hover:bg-white/10 hover:text-zinc-200"
+            aria-label="Notifications"
+            className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
           >
-            <ChevronsUpDown className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Collapse sidebar"
-            className="rounded p-1 text-zinc-500 hover:bg-white/10 hover:text-zinc-200"
-          >
-            <PanelLeftClose className="h-3.5 w-3.5" />
+            <Bell className="h-4 w-4" strokeWidth={1.8} />
           </button>
         </div>
+        {trialDaysLeft !== null ? (
+          <div className="flex h-9 items-center gap-2 px-3 text-[13px]">
+            <span className="text-zinc-400">Trial</span>
+            <span className="flex flex-1 items-center justify-end gap-1.5 text-zinc-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-yellow-400" />
+              {trialDaysLeft} days left
+            </span>
+          </div>
+        ) : null}
       </div>
     </aside>
   );
