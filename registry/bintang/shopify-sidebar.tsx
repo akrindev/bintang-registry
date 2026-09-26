@@ -32,6 +32,8 @@ export interface ShopifySidebarProps {
   onNavigate?: (href: string) => void;
   /** Called when the collapse toggle is clicked. */
   onCollapse?: () => void;
+  /** Collapse to icons-only with a smooth width transition. */
+  collapsed?: boolean;
   /** Search input placeholder. */
   searchPlaceholder?: string;
   /** Called as the user types in the sidebar search. */
@@ -59,12 +61,32 @@ export function ShopifyMark({ className }: { className?: string }) {
   );
 }
 
+function NavLabel({
+  children,
+  collapsed,
+}: {
+  children: React.ReactNode;
+  collapsed?: boolean;
+}) {
+  return (
+    <span
+      className={cx(
+        "flex-1 truncate whitespace-nowrap transition-all duration-200 ease-in-out",
+        collapsed ? "max-w-0 opacity-0" : "max-w-[160px] opacity-100"
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
 function RowLink({
   label,
   href,
   icon: Icon,
   active,
   badge,
+  collapsed,
   onNavigate,
 }: {
   label: string;
@@ -72,6 +94,7 @@ function RowLink({
   icon?: React.ComponentType<{ className?: string }>;
   active?: boolean;
   badge?: string;
+  collapsed?: boolean;
   onNavigate?: (href: string) => void;
 }) {
   return (
@@ -86,8 +109,10 @@ function RowLink({
           : undefined
       }
       aria-current={active ? "page" : undefined}
+      title={collapsed ? label : undefined}
       className={cx(
-        "flex h-9 w-full items-center gap-3 px-3 text-[14px] transition-colors",
+        "flex h-9 w-full items-center gap-3 text-[14px] transition-colors",
+        collapsed ? "justify-center px-0" : "px-3",
         // only the active row gets a background, and only it is rounded
         active
           ? "rounded-[10px] bg-white/[0.12] font-medium text-white"
@@ -103,8 +128,8 @@ function RowLink({
           strokeWidth={1.8}
         />
       ) : null}
-      <span className="flex-1 truncate">{label}</span>
-      {badge ? (
+      <NavLabel collapsed={collapsed}>{label}</NavLabel>
+      {badge && !collapsed ? (
         <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-zinc-200">
           {badge}
         </span>
@@ -120,6 +145,7 @@ function ParentRow({
   children,
   activeHref,
   defaultExpanded,
+  collapsed,
   onNavigate,
 }: {
   label: string;
@@ -128,11 +154,13 @@ function ParentRow({
   children: Array<{ label: string; href: string; badge?: string }>;
   activeHref?: string;
   defaultExpanded?: boolean;
+  collapsed?: boolean;
   onNavigate?: (href: string) => void;
 }) {
   const childActive = children.some((c) => c.href === activeHref);
   const selfActive = href === activeHref && !childActive;
   const [open, setOpen] = React.useState(defaultExpanded ?? childActive);
+  const show = open && !collapsed;
 
   React.useEffect(() => {
     if (childActive) setOpen(true);
@@ -142,7 +170,8 @@ function ParentRow({
     <div>
       <div
         className={cx(
-          "flex h-9 w-full items-center gap-3 px-3 text-[14px] transition-colors",
+          "flex h-9 w-full items-center gap-3 text-[14px] transition-colors",
+          collapsed ? "justify-center px-0" : "px-3",
           selfActive || childActive
             ? "rounded-[10px] bg-white/[0.12] font-medium text-white"
             : "font-normal text-zinc-100 hover:bg-white/[0.05]"
@@ -159,7 +188,11 @@ function ParentRow({
               : undefined
           }
           aria-current={selfActive ? "page" : undefined}
-          className="flex min-w-0 flex-1 items-center gap-3"
+          title={collapsed ? label : undefined}
+          className={cx(
+            "flex min-w-0 items-center gap-3",
+            collapsed ? "justify-center" : "flex-1"
+          )}
         >
           <Icon
             className={cx(
@@ -168,36 +201,46 @@ function ParentRow({
             )}
             strokeWidth={1.8}
           />
-          <span className="truncate">{label}</span>
+          <NavLabel collapsed={collapsed}>{label}</NavLabel>
         </a>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
-          className="rounded p-0.5 text-zinc-500 hover:bg-white/10 hover:text-zinc-200"
-        >
-          {open ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          )}
-        </button>
-      </div>
-      {open ? (
-        <div className="py-0.5">
-          {children.map((child) => (
-            <RowLink
-              key={child.href}
-              label={child.label}
-              href={child.href}
-              badge={child.badge}
-              active={child.href === activeHref}
-              onNavigate={onNavigate}
+        {!collapsed ? (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-label={open ? `Collapse ${label}` : `Expand ${label}`}
+            className="rounded p-0.5 text-zinc-500 hover:bg-white/10 hover:text-zinc-200"
+          >
+            <ChevronDown
+              className={cx(
+                "h-4 w-4 transition-transform duration-200 ease-in-out",
+                open ? "rotate-0" : "-rotate-90"
+              )}
             />
-          ))}
+          </button>
+        ) : null}
+      </div>
+      <div
+        className={cx(
+          "grid transition-all duration-200 ease-in-out",
+          show ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="space-y-[2px] py-0.5">
+            {children.map((child) => (
+              <RowLink
+                key={child.href}
+                label={child.label}
+                href={child.href}
+                badge={child.badge}
+                active={child.href === activeHref}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
@@ -207,7 +250,8 @@ function ParentRow({
  *
  * Faithful details: near-black surface, square inactive rows, softly
  * rounded active highlight, muted section headers, store switcher footer
- * with optional trial banner.
+ * with optional trial banner. Supports an animated collapsed (icons-only)
+ * state and smoothly expanding sub-menus.
  */
 export function ShopifySidebar({
   storeName = "My Store",
@@ -216,6 +260,7 @@ export function ShopifySidebar({
   sections = SHOPIFY_NAV_SECTIONS,
   onNavigate,
   onCollapse,
+  collapsed = false,
   searchPlaceholder = "Search",
   onSearch,
   trialDaysLeft = null,
@@ -245,17 +290,23 @@ export function ShopifySidebar({
   return (
     <aside
       className={cx(
-        "flex h-full w-[218px] shrink-0 flex-col bg-[#1a1a1a] text-zinc-100",
+        "flex h-full shrink-0 flex-col overflow-hidden bg-[#1a1a1a] text-zinc-100 transition-[width] duration-300 ease-in-out",
+        collapsed ? "w-[68px]" : "w-[218px]",
         className
       )}
     >
       {/* logo + collapse */}
-      <div className="flex items-center justify-between px-3 pb-1 pt-3">
-        <ShopifyMark />
+      <div
+        className={cx(
+          "flex items-center pb-1 pt-3",
+          collapsed ? "justify-center px-0" : "justify-between px-3"
+        )}
+      >
+        {collapsed ? null : <ShopifyMark />}
         <button
           type="button"
           onClick={onCollapse}
-          aria-label="Collapse sidebar"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
         >
           <PanelLeft className="h-[18px] w-[18px]" strokeWidth={1.8} />
@@ -263,26 +314,33 @@ export function ShopifySidebar({
       </div>
 
       {/* search */}
-      <div className="px-2 pb-1 pt-1">
-        <label className="flex h-9 items-center gap-2 rounded-lg bg-white/[0.07] px-2.5 text-[14px] text-zinc-500 transition-colors focus-within:bg-white/[0.1] focus-within:text-zinc-300">
+      <div className={cx("pb-1 pt-1", collapsed ? "px-2" : "px-2")}>
+        <label
+          className={cx(
+            "flex h-9 items-center gap-2 rounded-lg bg-white/[0.07] text-[14px] text-zinc-500 transition-colors focus-within:bg-white/[0.1] focus-within:text-zinc-300",
+            collapsed ? "justify-center px-0" : "px-2.5"
+          )}
+        >
           <Search className="h-4 w-4 shrink-0" strokeWidth={2} />
-          <input
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              onSearch?.(e.target.value);
-            }}
-            placeholder={searchPlaceholder}
-            className="w-full bg-transparent text-zinc-100 outline-none placeholder:text-zinc-500"
-          />
+          {collapsed ? null : (
+            <input
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                onSearch?.(e.target.value);
+              }}
+              placeholder={searchPlaceholder}
+              className="w-full bg-transparent text-zinc-100 outline-none placeholder:text-zinc-500"
+            />
+          )}
         </label>
       </div>
 
       {/* nav */}
-      <nav className="flex-1 space-y-3 overflow-y-auto px-2 py-1 [scrollbar-width:thin]">
+      <nav className="flex-1 space-y-3 overflow-y-auto overflow-x-hidden px-2 py-1 [scrollbar-width:thin]">
         {visibleSections.map((section, i) => (
           <div key={section.title ?? `main-${i}`}>
-            {section.title ? (
+            {section.title && !collapsed ? (
               <button
                 type="button"
                 className="mb-0.5 flex h-8 w-full items-center gap-1 px-3 text-[13px] font-normal text-zinc-500 transition-colors hover:text-zinc-300"
@@ -302,6 +360,7 @@ export function ShopifySidebar({
                     children={item.children}
                     activeHref={activeHref}
                     defaultExpanded={item.defaultExpanded}
+                    collapsed={collapsed}
                     onNavigate={onNavigate}
                   />
                 ) : (
@@ -312,6 +371,7 @@ export function ShopifySidebar({
                     icon={item.icon}
                     badge={item.badge}
                     active={item.href === activeHref}
+                    collapsed={collapsed}
                     onNavigate={onNavigate}
                   />
                 )
@@ -333,24 +393,34 @@ export function ShopifySidebar({
           href={SETTINGS_NAV_ITEM.href}
           icon={SETTINGS_NAV_ITEM.icon}
           active={SETTINGS_NAV_ITEM.href === activeHref}
+          collapsed={collapsed}
           onNavigate={onNavigate}
         />
-        <div className="mt-1 flex h-10 items-center gap-2.5 px-2">
+        <div
+          className={cx(
+            "mt-1 flex h-10 items-center gap-2.5",
+            collapsed ? "justify-center px-0" : "px-2"
+          )}
+        >
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] bg-[#95bf47] text-[11px] font-bold text-white">
             {storeInitials}
           </span>
-          <span className="flex-1 truncate text-[14px] text-zinc-100">
-            {storeName}
-          </span>
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
-          >
-            <Bell className="h-4 w-4" strokeWidth={1.8} />
-          </button>
+          {collapsed ? null : (
+            <>
+              <span className="flex-1 truncate text-[14px] text-zinc-100">
+                {storeName}
+              </span>
+              <button
+                type="button"
+                aria-label="Notifications"
+                className="rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
+              >
+                <Bell className="h-4 w-4" strokeWidth={1.8} />
+              </button>
+            </>
+          )}
         </div>
-        {trialDaysLeft !== null ? (
+        {trialDaysLeft !== null && !collapsed ? (
           <div className="flex h-9 items-center gap-2 px-3 text-[13px]">
             <span className="text-zinc-400">Trial</span>
             <span className="flex flex-1 items-center justify-end gap-1.5 text-zinc-300">
