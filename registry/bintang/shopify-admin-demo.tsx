@@ -1,7 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { Bot, History, Mic, Pencil, Plus, X } from "lucide-react";
+import {
+  BarChart3,
+  Bot,
+  Calendar,
+  ChevronDown,
+  History,
+  Info,
+  Mic,
+  MoreHorizontal,
+  Package,
+  Pencil,
+  Plus,
+  X,
+} from "lucide-react";
 import { ShopifySidebar } from "@/components/shopify-sidebar";
 
 function cx(...parts: Array<string | false | null | undefined>) {
@@ -12,6 +25,27 @@ const SWEATER_IMG =
   "https://cdn.shopify.com/shopifycloud/web/assets/v1/vite/client/en/assets/cream-sweater-01dd07d7d289.png?width=450";
 const CHAIR_IMG =
   "https://cdn.shopify.com/shopifycloud/web/assets/v1/vite/client/en/assets/green-chair-8aaed6f645ac.png?width=400";
+
+/* ---------------- trial pill (visible on every page) ---------------- */
+
+function TrialPill() {
+  return (
+    <div className="absolute right-6 top-4 z-20 flex h-[38px] items-center gap-2.5 rounded-full bg-[#1a1a1a] px-[20px]">
+      <span className="h-2 w-2 rounded-full bg-green-400" />
+      <span className="text-[13.5px] text-white">Get 3 months for $1/month</span>
+      <span className="h-4 w-px bg-white/20" />
+      <a
+        href="#"
+        onClick={(e) => e.preventDefault()}
+        className="text-[13.5px] font-semibold text-white hover:underline"
+      >
+        Select a plan
+      </a>
+    </div>
+  );
+}
+
+/* ---------------- home: setup cards ---------------- */
 
 interface SetupCard {
   eyebrow?: string;
@@ -185,24 +219,356 @@ function SetupCardView({
   );
 }
 
-/**
- * Pixel-faithful Shopify Horizon home demo.
- * Measurements were taken from a real Shopify admin: floating rounded
- * content sheet, 320px setup cards, Sidekick prompt field and trial pill.
- */
-export function ShopifyAdminDemo() {
-  const [activeHref, setActiveHref] = React.useState("/");
-  const [collapsed, setCollapsed] = React.useState(false);
+function HomeView() {
   const [dismissed, setDismissed] = React.useState<number[]>([]);
   const visible = CARDS.filter((_, i) => !dismissed.includes(i));
+
+  return (
+    <div className="mx-auto max-w-[980px] px-4 pb-[140px] pt-[194px]">
+      {/* heading */}
+      <div className="mb-[20px] text-center">
+        <h1 className="text-[28px] font-medium text-[#1a1a1a]">
+          Welcome to Shopify
+        </h1>
+        <p className="mt-[4px] flex items-center justify-center gap-2 text-[28px] font-medium text-[#1a1a1a]">
+          Let&rsquo;s set up My Store
+          <Pencil className="h-4 w-4 text-zinc-500" />
+        </p>
+      </div>
+
+      {/* sidekick prompt */}
+      <div className="relative mx-auto mb-[115px] w-full max-w-[647px]">
+        <div
+          aria-hidden
+          className="absolute -inset-1.5 rounded-[30px] bg-gradient-to-r from-violet-200/70 via-indigo-100/60 to-violet-200/70 blur-lg"
+        />
+        <div className="relative h-[108px] rounded-[24px] border-2 border-dashed border-zinc-300 bg-white p-[20px]">
+          <p className="text-[14px] text-[#6d7175]">Create a product listing</p>
+          <div className="absolute bottom-[20px] left-[20px] right-[20px] flex items-center justify-between">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-100">
+              <Bot className="h-4 w-4 text-violet-600" />
+            </span>
+            <span className="flex items-center gap-3">
+              <button
+                type="button"
+                className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-600 transition-colors hover:text-zinc-900"
+              >
+                <History className="h-4 w-4" />
+                Recents
+              </button>
+              <span className="h-4 w-px bg-zinc-200" />
+              <button
+                type="button"
+                aria-label="Add files and more"
+                className="rounded-full p-1 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+              >
+                <Plus className="h-[18px] w-[18px]" />
+              </button>
+              <button
+                type="button"
+                aria-label="Voice input"
+                className="rounded-full p-1 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+              >
+                <Mic className="h-[18px] w-[18px]" />
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* setup cards */}
+      {visible.length > 0 ? (
+        <div className="grid grid-cols-6 gap-4">
+          {visible.slice(0, 2).map((card) => {
+            const i = CARDS.indexOf(card);
+            return (
+              <div key={card.title} className="col-span-6 md:col-span-3">
+                <SetupCardView
+                  card={card}
+                  index={i}
+                  onDismiss={() => setDismissed((d) => [...d, i])}
+                />
+              </div>
+            );
+          })}
+          {visible.slice(2).map((card) => {
+            const i = CARDS.indexOf(card);
+            return (
+              <div key={card.title} className="col-span-6 md:col-span-2">
+                <SetupCardView
+                  card={card}
+                  index={i}
+                  onDismiss={() => setDismissed((d) => [...d, i])}
+                />
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="py-16 text-center text-[14px] text-zinc-500">
+          You&rsquo;re all set. Nice work!
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- analytics view ---------------- */
+
+const KPI = [
+  { label: "Sessions", value: "1,284", delta: "+12.4%" },
+  { label: "Total sales", value: "Rp 8.2M", delta: "+8.1%" },
+  { label: "Conversion rate", value: "2.4%", delta: "+0.3%" },
+  { label: "Average order value", value: "Rp 312K", delta: "-1.2%" },
+];
+
+function FilterPill({ children }: { children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      className="flex h-8 items-center gap-2 rounded-full bg-[#f1f1f1] px-4 text-[14px] text-zinc-800 transition-colors hover:bg-zinc-200"
+    >
+      {children}
+    </button>
+  );
+}
+
+function AnalyticsView() {
+  const [bannerVisible, setBannerVisible] = React.useState(true);
+  return (
+    <div className="px-4 pb-16 pt-4">
+      {/* header row */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-zinc-800" />
+          <h1 className="text-[20px] font-semibold text-[#1a1a1a]">Analytics</h1>
+          <span className="ml-1 text-[13px] text-zinc-500">
+            Last refreshed: just now
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="More actions"
+            className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-zinc-300 bg-white text-zinc-700 transition-colors hover:bg-zinc-50"
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            className="flex h-8 items-center gap-1.5 rounded-[8px] border border-zinc-300 bg-white px-3 text-[14px] text-zinc-800 transition-colors hover:bg-zinc-50"
+          >
+            Try targets
+            <ChevronDown className="h-4 w-4 text-zinc-500" />
+          </button>
+          <button
+            type="button"
+            className="flex h-8 items-center rounded-[8px] bg-[#1a1a1a] px-3.5 text-[14px] font-medium text-white transition-colors hover:bg-zinc-800"
+          >
+            New exploration
+          </button>
+        </div>
+      </div>
+
+      {/* info banner */}
+      {bannerVisible ? (
+        <div className="mt-4 flex items-center gap-3 rounded-[12px] bg-[#e9f5fe] px-4 py-3">
+          <Info className="h-5 w-5 shrink-0 text-blue-600" />
+          <p className="flex-1 text-[14px] text-zinc-800">
+            Beginning Sept 21, 2026, sessions and related metrics may shift as
+            Shopify Analytics enables better visibility into real shopper
+            activity.{" "}
+            <a
+              href="#"
+              onClick={(e) => e.preventDefault()}
+              className="text-blue-700 underline hover:text-blue-800"
+            >
+              Learn more
+            </a>
+          </p>
+          <button
+            type="button"
+            aria-label="Dismiss"
+            onClick={() => setBannerVisible(false)}
+            className="rounded p-1 text-zinc-500 transition-colors hover:bg-blue-100 hover:text-zinc-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
+
+      {/* filter pills */}
+      <div className="mt-4 flex items-center gap-2">
+        <FilterPill>
+          <Calendar className="h-4 w-4 text-zinc-600" />
+          Today
+          <ChevronDown className="h-4 w-4 text-zinc-500" />
+        </FilterPill>
+        <FilterPill>
+          Sep 25, 2026
+          <ChevronDown className="h-4 w-4 text-zinc-500" />
+        </FilterPill>
+        <FilterPill>IDR Rp</FilterPill>
+      </div>
+
+      {/* kpi cards */}
+      <div className="mt-4 grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {KPI.map((k) => (
+          <div
+            key={k.label}
+            className="rounded-[12px] border border-[#e3e3e3] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+          >
+            <p className="text-[13px] text-zinc-500">{k.label}</p>
+            <p className="mt-1 text-[24px] font-semibold text-[#1a1a1a]">
+              {k.value}
+            </p>
+            <p
+              className={cx(
+                "mt-1 text-[13px] font-medium",
+                k.delta.startsWith("-") ? "text-red-600" : "text-green-700"
+              )}
+            >
+              {k.delta}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* chart placeholder */}
+      <div className="mt-4 grid grid-cols-12 gap-4">
+        <div className="col-span-12 rounded-[12px] border border-[#e3e3e3] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] lg:col-span-8">
+          <p className="text-[14px] font-semibold text-[#1a1a1a]">
+            Sessions over time
+          </p>
+          <div className="mt-4 flex h-[220px] items-end justify-between gap-2 px-2">
+            {[35, 55, 42, 70, 58, 85, 64, 92, 74, 100, 82, 66].map((h, i) => (
+              <div
+                key={i}
+                className="flex-1 rounded-t-[4px] bg-gradient-to-t from-blue-200 to-blue-500"
+                style={{ height: `${h}%` }}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="col-span-12 rounded-[12px] border border-[#e3e3e3] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)] lg:col-span-4">
+          <p className="text-[14px] font-semibold text-[#1a1a1a]">
+            Top referrers
+          </p>
+          <div className="mt-4 space-y-3">
+            {[
+              ["Direct", "42%"],
+              ["Google", "28%"],
+              ["Instagram", "18%"],
+              ["TikTok", "12%"],
+            ].map(([name, pct]) => (
+              <div key={name} className="flex items-center justify-between">
+                <span className="text-[14px] text-zinc-600">{name}</span>
+                <span className="text-[14px] font-medium text-[#1a1a1a]">
+                  {pct}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- orders view ---------------- */
+
+function OrdersView() {
+  return (
+    <div className="pb-16">
+      {/* sticky header */}
+      <div className="sticky top-0 z-10 flex h-[55px] items-center justify-between border-b border-zinc-200 bg-white/95 px-4 backdrop-blur">
+        <div className="flex items-center gap-2">
+          <Package className="h-4 w-4 text-zinc-800" />
+          <h1 className="text-[20px] font-semibold text-[#1a1a1a]">Orders</h1>
+        </div>
+        <button
+          type="button"
+          aria-label="More actions"
+          className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-zinc-300 bg-white text-zinc-700 transition-colors hover:bg-zinc-50"
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* empty-state card */}
+      <div className="m-4 rounded-[12px] border border-[#e3e3e3] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+        <div className="flex flex-col items-center px-4 pb-[64px] pt-[20px] text-center">
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100">
+            <Package className="h-8 w-8 text-zinc-400" strokeWidth={1.5} />
+          </span>
+          <h2 className="mt-4 text-[18px] font-semibold text-[#1a1a1a]">
+            No orders yet
+          </h2>
+          <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-zinc-500">
+            When customers place orders, they&rsquo;ll show up here where you
+            can fulfill, refund, and manage them.
+          </p>
+          <button
+            type="button"
+            className="mt-5 flex h-9 items-center rounded-[8px] bg-[#1a1a1a] px-4 text-[14px] font-medium text-white transition-colors hover:bg-zinc-800"
+          >
+            Create order
+          </button>
+        </div>
+      </div>
+
+      <p className="text-center text-[14px] text-zinc-500">
+        Learn more about{" "}
+        <a
+          href="#"
+          onClick={(e) => e.preventDefault()}
+          className="text-blue-700 underline hover:text-blue-800"
+        >
+          orders
+        </a>
+      </p>
+    </div>
+  );
+}
+
+/* ---------------- fallback view ---------------- */
+
+function PlaceholderView({ title }: { title: string }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center px-4 pb-16 text-center">
+      <h1 className="text-[24px] font-semibold text-[#1a1a1a]">{title}</h1>
+      <p className="mt-2 max-w-sm text-[14px] text-zinc-500">
+        This is a demo placeholder for the {title} page.
+      </p>
+    </div>
+  );
+}
+
+/* ---------------- demo shell ---------------- */
+
+/**
+ * Pixel-faithful Shopify Horizon admin demo: dark sidebar, floating rounded
+ * content sheet, measured home / analytics / orders views.
+ */
+export function ShopifyAdminDemo() {
+  const [route, setRoute] = React.useState("/");
+  const [collapsed, setCollapsed] = React.useState(false);
+
+  const title =
+    route === "/"
+      ? "Home"
+      : route
+          .replace(/^\//, "")
+          .replace(/-/g, " ")
+          .replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#1a1a1a]">
       <ShopifySidebar
         storeName="My Store"
         storeInitials="MS"
-        activeHref={activeHref}
-        onNavigate={setActiveHref}
+        activeHref={route}
+        onNavigate={setRoute}
         collapsed={collapsed}
         onCollapse={() => setCollapsed((v) => !v)}
         trialDaysLeft={3}
@@ -210,115 +576,17 @@ export function ShopifyAdminDemo() {
 
       {/* floating content sheet */}
       <main className="relative m-[4px] ml-[2px] flex-1 overflow-hidden rounded-[12px] bg-[#f7f7f7]">
-        {/* trial pill */}
-        <div className="absolute right-6 top-4 z-10 flex h-[38px] items-center gap-2.5 rounded-full bg-[#1a1a1a] px-[20px]">
-          <span className="h-2 w-2 rounded-full bg-green-400" />
-          <span className="text-[13.5px] text-white">
-            Get 3 months for $1/month
-          </span>
-          <span className="h-4 w-px bg-white/20" />
-          <a
-            href="#"
-            onClick={(e) => e.preventDefault()}
-            className="text-[13.5px] font-semibold text-white hover:underline"
-          >
-            Select a plan
-          </a>
-        </div>
-
-        <div className="h-full overflow-y-auto px-6 pb-16 pt-10">
-          <div className="mx-auto max-w-[1000px]">
-            {/* heading */}
-            <div className="mb-[20px] text-center">
-              <h1 className="text-[28px] font-medium text-[#1a1a1a]">
-                Welcome to Shopify
-              </h1>
-              <p className="mt-[4px] flex items-center justify-center gap-2 text-[28px] font-medium text-[#1a1a1a]">
-                Let&rsquo;s set up My Store
-                <Pencil className="h-4 w-4 text-zinc-500" />
-              </p>
-            </div>
-
-            {/* sidekick prompt */}
-            <div className="relative mx-auto mb-[36px] w-full max-w-[647px]">
-              <div
-                aria-hidden
-                className="absolute -inset-1.5 rounded-[30px] bg-gradient-to-r from-violet-200/70 via-indigo-100/60 to-violet-200/70 blur-lg"
-              />
-              <div className="relative h-[108px] rounded-[24px] border-2 border-dashed border-zinc-300 bg-white p-[20px]">
-                <p className="text-[14px] text-[#6d7175]">
-                  Create a product listing
-                </p>
-                <div className="absolute bottom-[20px] left-[20px] right-[20px] flex items-center justify-between">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-100">
-                    <Bot className="h-4 w-4 text-violet-600" />
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      className="flex items-center gap-1.5 text-[13px] font-medium text-zinc-600 transition-colors hover:text-zinc-900"
-                    >
-                      <History className="h-4 w-4" />
-                      Recents
-                    </button>
-                    <span className="h-4 w-px bg-zinc-200" />
-                    <button
-                      type="button"
-                      aria-label="Add files and more"
-                      className="rounded-full p-1 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
-                    >
-                      <Plus className="h-[18px] w-[18px]" />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Voice input"
-                      className="rounded-full p-1 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
-                    >
-                      <Mic className="h-[18px] w-[18px]" />
-                    </button>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* setup cards */}
-            {visible.length > 0 ? (
-              <div className="grid grid-cols-6 gap-[18px]">
-                {visible.slice(0, 2).map((card) => {
-                  const i = CARDS.indexOf(card);
-                  return (
-                    <div key={card.title} className="col-span-3">
-                      <SetupCardView
-                        card={card}
-                        index={i}
-                        onDismiss={() =>
-                          setDismissed((d) => [...d, i])
-                        }
-                      />
-                    </div>
-                  );
-                })}
-                {visible.slice(2).map((card) => {
-                  const i = CARDS.indexOf(card);
-                  return (
-                    <div key={card.title} className="col-span-2">
-                      <SetupCardView
-                        card={card}
-                        index={i}
-                        onDismiss={() =>
-                          setDismissed((d) => [...d, i])
-                        }
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="py-16 text-center text-[14px] text-zinc-500">
-                You&rsquo;re all set. Nice work!
-              </p>
-            )}
-          </div>
+        <TrialPill />
+        <div className="h-full overflow-y-auto">
+          {route === "/" ? (
+            <HomeView />
+          ) : route === "/analytics" ? (
+            <AnalyticsView />
+          ) : route === "/orders" ? (
+            <OrdersView />
+          ) : (
+            <PlaceholderView title={title} />
+          )}
         </div>
       </main>
     </div>
