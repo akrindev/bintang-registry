@@ -111,11 +111,11 @@ function RowLink({
       aria-current={active ? "page" : undefined}
       title={collapsed ? label : undefined}
       className={cx(
-        "flex h-9 w-full items-center gap-3 text-[14px] transition-colors",
+        "flex h-9 w-full items-center gap-3 rounded-[10px] text-[13px] transition-colors",
         collapsed ? "justify-center px-0" : "px-3",
-        // only the active row gets a background, and only it is rounded
+        // only the active row gets a background; hover shares the same radius
         active
-          ? "rounded-[10px] bg-white/[0.12] font-medium text-white"
+          ? "bg-white/[0.12] font-medium text-white"
           : "font-normal text-zinc-100 hover:bg-white/[0.05]"
       )}
     >
@@ -170,10 +170,10 @@ function ParentRow({
     <div>
       <div
         className={cx(
-          "flex h-9 w-full items-center gap-3 text-[14px] transition-colors",
+          "flex h-9 w-full items-center gap-3 rounded-[10px] text-[13px] transition-colors",
           collapsed ? "justify-center px-0" : "px-3",
           selfActive || childActive
-            ? "rounded-[10px] bg-white/[0.12] font-medium text-white"
+            ? "bg-white/[0.12] font-medium text-white"
             : "font-normal text-zinc-100 hover:bg-white/[0.05]"
         )}
       >
@@ -290,11 +290,16 @@ export function ShopifySidebar({
   return (
     <aside
       className={cx(
-        "flex h-full shrink-0 flex-col overflow-hidden bg-[#1a1a1a] text-zinc-100 transition-[width] duration-300 ease-in-out",
+        "relative flex h-full shrink-0 flex-col overflow-hidden bg-[linear-gradient(180deg,#262626_0%,#1c1c1c_45%,#1a1a1a_100%)] text-zinc-100 transition-[width] duration-300 ease-in-out",
         collapsed ? "w-[68px]" : "w-[218px]",
         className
       )}
     >
+      {/* warm golden glow behind the footer */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[190px] bg-[radial-gradient(ellipse_90%_100%_at_50%_100%,rgba(122,102,28,0.45),transparent_70%)]"
+      />
       {/* logo + collapse */}
       <div
         className={cx(
@@ -317,7 +322,7 @@ export function ShopifySidebar({
       <div className={cx("pb-1 pt-1", collapsed ? "px-2" : "px-2")}>
         <label
           className={cx(
-            "flex h-9 items-center gap-2 rounded-lg bg-white/[0.07] text-[14px] text-zinc-500 transition-colors focus-within:bg-white/[0.1] focus-within:text-zinc-300",
+            "flex h-9 items-center gap-2 rounded-lg bg-white/[0.07] text-[13px] text-zinc-500 transition-colors focus-within:bg-white/[0.1] focus-within:text-zinc-300",
             collapsed ? "justify-center px-0" : "px-2.5"
           )}
         >
@@ -407,7 +412,7 @@ export function ShopifySidebar({
           </span>
           {collapsed ? null : (
             <>
-              <span className="flex-1 truncate text-[14px] text-zinc-100">
+              <span className="flex-1 truncate text-[13px] text-zinc-100">
                 {storeName}
               </span>
               <button
